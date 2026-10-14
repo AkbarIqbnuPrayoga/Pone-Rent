@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Pone Rent | Penyewaan iPhone Series Terlengkap & Resmi</title>
+    <meta name="description" content="Penyewaan iPhone Series resmi terlengkap di Indonesia: iPhone 15 Pro Max, 15 Pro, 15 Plus, dan 15. Unit 100% original, bebas akun iCloud, sewa harian/mingguan/bulanan untuk konten, event, dan konser.">
+
+    <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Three.js, GLTF Loader & DRACO Loader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="GLTFLoader.js"></script>
+    <script src="DRACOLoader.js"></script>
+    <script>
+        // Fallback to CDN if local loaders are not available
+        if (typeof THREE.GLTFLoader === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"><\/script>');
+        }
+        if (typeof THREE.DRACOLoader === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"><\/script>');
+        }
+    </script>
+
+    <!-- GSAP & ScrollTrigger (Scroll Animations) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body data-theme="dark">
+    <!-- Top Scroll Progress Bar -->
+    <div id="scroll-progress" class="scroll-progress-bar"></div>
+
+    <!-- Page Loader -->
+    <div id="loader" class="loader-container">
+        <div class="loader-content">
+            <div class="loader-phone-icon">
+                <i class="fa-solid fa-mobile-screen"></i>
+            </div>
+            <div class="loader-title">PONE <span>RENT</span></div>
+            <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+            <p class="loader-text">Memuat Studio Sewa iPhone...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <div class="toast-icon"><i class="fa-solid fa-check"></i></div>
+        <div class="toast-message" id="toast-message">Unit berhasil ditambahkan ke daftar sewa</div>
+    </div>
+
+    <!-- Navbar -->
+    <header class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#home" class="logo">
+                <span class="logo-mark"><i class="fa-solid fa-mobile-screen-button"></i></span>
+                Pone<span class="logo-accent">Rent</span>
+            </a>
+
+            <nav class="nav-links">
+                <a href="#home" class="nav-link active">Studio 3D</a>
+                <a href="#highlights" class="nav-link">Keunggulan</a>
+                <a href="#studio-showcase" class="nav-link">Mockup Preview</a>
+                <a href="#products" class="nav-link">Katalog iPhone</a>
+                <a href="#compare" class="nav-link">Komparasi</a>
+                <a href="#tradein" class="nav-link">Kalkulator Sewa</a>
+                <a href="#reviews" class="nav-link">Ulasan</a>
+            </nav>
+
+            <div class="nav-actions">
+                <!-- Sound FX Toggle -->
+                <button id="sound-toggle" class="icon-btn" title="Toggle Sound FX" aria-label="Toggle Sound Effects">
+                    <i class="fa-solid fa-volume-high"></i>
+                    <span class="sound-dot"></span>
+                </button>
+
+                <!-- Theme Toggle -->
+                <button id="theme-toggle" class="icon-btn" title="Ganti Tema Gelap / Terang" aria-label="Toggle Theme">
+                    <i class="fa-solid fa-sun"></i>
+                </button>
+
+                <!-- Wishlist Button -->
+                <button id="wishlist-btn" class="icon-btn" title="Wishlist Unit" aria-label="Wishlist">
+                    <i class="fa-regular fa-heart"></i>
+                    <span class="badge" id="wishlist-badge">0</span>
+                </button>
+
+                <!-- Cart Button -->
+                <button id="cart-icon" class="icon-btn cart-btn-action" title="Daftar Sewa" aria-label="Daftar Sewa">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span class="badge" id="cart-badge">0</span>
+                </button>
+
+                <!-- Mobile Menu Hamburger -->
+                <button class="hamburger" id="hamburger" aria-label="Menu Mobile">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
+    <aside class="mobile-menu" id="mobile-menu">
+        <div class="mobile-menu-header">
+            <div class="logo">Pone<span class="logo-accent">Rent</span></div>
+            <button class="close-menu" id="close-menu" aria-label="Tutup menu"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="mobile-menu-body">
+            <a href="#home" class="mobile-link"><i class="fa-solid fa-house"></i> Studio 3D</a>
+            <a href="#highlights" class="mobile-link"><i class="fa-solid fa-shield-halved"></i> Keunggulan Sewa</a>
+            <a href="#studio-showcase" class="mobile-link"><i class="fa-solid fa-wand-magic-sparkles"></i> Studio Mockup (Previewed)</a>
+            <a href="#products" class="mobile-link"><i class="fa-solid fa-mobile-screen"></i> Katalog iPhone (X - 17)</a>
+            <a href="#compare" class="mobile-link"><i class="fa-solid fa-code-compare"></i> Komparasi Spesifikasi</a>
+            <a href="#tradein" class="mobile-link"><i class="fa-solid fa-calculator"></i> Kalkulator Sewa Hemat</a>
+            <a href="#reviews" class="mobile-link"><i class="fa-solid fa-star"></i> Ulasan Penyewa</a>
+            
+            <div class="mobile-menu-divider"></div>
+            
+            <div class="mobile-quick-actions">
+                <button id="mobile-sound-toggle" class="btn-subtle w-100">
+                    <i class="fa-solid fa-volume-high"></i> Audio UI: <span id="sound-status-text">ON</span>
+                </button>
+            </div>
+        </div>
+        <div class="mobile-menu-footer">
+            <p>Customer Support: +62 812-8888-PONE</p>
+            <p class="text-muted">© 2026 Pone Rent Indonesia.</p>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section with Real 3D Smartphone Showcase -->
+        <section id="home" class="hero-section">
+            <div class="container hero-container">
+                <!-- Left Column: Minimalist Typography & Authentic Finish Selector -->
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <span class="badge-dot"></span>
+                        TITANIUM ARCHITECTURE • IPHONE 15 PRO
+                    </div>
+
+                    <h1 class="hero-title">
+                        Ditempa dari Titanium.<br>
+                        <span class="hero-title-sub">iPhone 15 Pro • Presisi. Minimalis. Abadi.</span>
+                    </h1>
+
+                    <p class="hero-description">
+                        Eksplorasi model 3D nyata iPhone 15 Pro dengan bingkai Grade 5 Titanium kelas aerospace. Ditenagai chip A17 Pro 3nm, layar Super Retina XDR ProMotion, dan sistem kamera 48MP. Siap disewa harian, mingguan, atau bulanan dengan unit original & bebas iCloud.
+                    </p>
+
+                    <!-- Interactive Titanium Finishes Selector -->
+                    <div class="hero-color-picker">
+                        <span class="color-picker-label">FINISH TITANIUM:</span>
+                        <div class="color-options" id="hero-color-options">
+                            <button class="color-swatch active" data-color="#8a857b" data-name="Natural Titanium" title="Natural Titanium" style="--swatch-color: #8a857b;"></button>
+                            <button class="color-swatch" data-color="#2b3846" data-name="Blue Titanium" title="Blue Titanium" style="--swatch-color: #2b3846;"></button>
+                            <button class="color-swatch" data-color="#e2e4e7" data-name="White Titanium" title="White Titanium" style="--swatch-color: #e2e4e7;"></button>
+                            <button class="color-swatch" data-color="#1f2124" data-name="Black Titanium" title="Black Titanium" style="--swatch-color: #1f2124;"></button>
+                        </div>
+                        <span class="active-color-name" id="active-color-name">Natural Titanium</span>
+                    </div>
+
+                    <!-- CTA Actions -->
+                    <div class="hero-cta-group">
+                        <a href="#products" class="btn-primary">
+                            <span>Sewa Sekarang</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                        <button class="btn-secondary" id="btn-hero-inspect-3d">
+                            <i class="fa-solid fa-cube"></i>
+                            <span>Buka Studio 3D</span>
+                        </button>
+                    </div>
+
+                    <!-- Clean Technical Specs Callout -->
+                    <div class="hero-stats">
+                        <div class="hero-stat-item">
+                            <div class="hero-stat-value">Rp 45rb+</div>
+                            <div class="hero-stat-label">Sewa / Hari</div>
+                        </div>
+                        <div class="hero-stat-divider"></div>
+                        <div class="hero-stat-item">
+                            <div class="hero-stat-value">X - 17 Pro</div>
+                            <div class="hero-stat-label">Lini Terlengkap</div>
+                        </div>
+                        <div class="hero-stat-divider"></div>
+                        <div class="hero-stat-item">
+                            <div class="hero-stat-value">Bebas iCloud</div>
+                            <div class="hero-stat-label">Unit Siap Pakai</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Real 3D Smartphone Viewport -->
+                <div class="hero-3d-wrapper">
+                    <!-- Previewed.app Floating Studio Angle Presets Dock -->
+                    <div class="studio-presets-toolbar">
+                        <span class="preset-label"><i class="fa-solid fa-camera"></i> SUDUT STUDIO:</span>
+                        <div class="preset-buttons" id="hero-angle-presets">
+                            <button class="preset-btn active" data-angle="isometric" title="Isometric Studio (Previewed.app default)">
+                                <i class="fa-solid fa-cube"></i> Isometric
+                            </button>
+                            <button class="preset-btn" data-angle="front" title="Front Display Studio">
+                                <i class="fa-solid fa-mobile-screen"></i> Front
+                            </button>
+                            <button class="preset-btn" data-angle="dynamic" title="Dynamic 3D Perspective">
+                                <i class="fa-solid fa-compass"></i> Dynamic
+                            </button>
+                            <button class="preset-btn" data-angle="back" title="Titanium Backplate & Camera Detail">
+                                <i class="fa-solid fa-shield"></i> Back
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="studio-subtle-glow"></div>
+                    <div id="hero-3d-canvas" class="hero-canvas"></div>
+
+                    <!-- Ground Contact Drop Shadow (Previewed.app Studio Filter) -->
+                    <div class="hero-contact-shadow" id="hero-contact-shadow"></div>
+
+                    <!-- Refined Minimalist Feature Markers -->
+                    <div class="feature-tag tag-camera" id="tag-camera">
+                        <span class="tag-marker"></span>
+                        <span>48MP Photonic Camera System</span>
+                    </div>
+                    <div class="feature-tag tag-chassis" id="tag-chassis">
+                        <span class="tag-marker"></span>
+                        <span>Aerospace Grade 5 Titanium</span>
+                    </div>
+                    <div class="feature-tag tag-screen" id="tag-screen">
+                        <span class="tag-marker"></span>
+                        <span>Dynamic OLED ProMotion</span>
+                    </div>
+
+                    <!-- 3D Controls -->
+                    <div class="canvas-controls">
+                        <div class="drag-hint">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                            <span>Sentuh & Geser untuk Rotasi 360°</span>
+                        </div>
+                        <div class="canvas-actions">
+                            <button id="toggle-spin-btn" class="mini-control-btn active" title="Auto Rotation">
+                                <i class="fa-solid fa-rotate"></i>
+                            </button>
+                            <button id="reset-view-btn" class="mini-control-btn" title="Reset Sudut">
+                                <i class="fa-solid fa-arrow-rotate-left"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Minimalist Scroll Down Pill -->
+            <a href="#highlights" class="scroll-indicator" id="scroll-indicator" aria-label="Scroll to highlights">
+                <span class="scroll-indicator-text">Gulir untuk eksplorasi</span>
+                <div class="scroll-indicator-pill">
+                    <div class="scroll-indicator-dot"></div>
+                </div>
+            </a>
+        </section>
+
+        <!-- Tech Innovations Section (Clean Architectural Bento Grid) -->
+        <section id="highlights" class="highlights-section section-padding">
+            <div class="container">
+                <div class="section-header text-center" data-scroll-reveal>
+                    <span class="section-tag">REKAYASA MATERIAL & PERFORMA</span>
+                    <h2 class="section-title">Presisi Tanpa Kompromi</h2>
+                    <p class="section-subtitle">Setiap detail struktural dirancang dengan standar tertinggi industri telekomunikasi modern untuk durabilitas, kenyamanan genggam, dan efisiensi termal optimal.</p>
+                </div>
+
+                <div class="bento-grid">
+                    <!-- Bento Card 1: Titanium -->
+                    <div class="bento-card bento-large card-3d-tilt" data-scroll-reveal>
+                        <div class="bento-content">
+                            <span class="bento-tag">STRUKTUR KELAS AEROSPACE</span>
+                            <h3>Grade 5 Titanium Alloy</h3>
+                            <p>Paduan titanium yang sama dengan pesawat ruang angkasa eksplorasi Mars. Memiliki rasio kekuatan terhadap bobot terbaik, dengan sentuhan satin mikro yang halus di tangan dan tahan benturan harian.</p>
+                            <div class="bento-metric">
+                                <span class="metric-num">19%</span>
+                                <span class="metric-desc">Lebih ringan dari generasi stainless steel dengan durabilitas superior</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bento Card 2: 3nm Architecture -->
+                    <div class="bento-card card-3d-tilt" data-scroll-reveal>
+                        <div class="bento-content">
+                            <span class="bento-tag">KOMPUTASI MIKRO</span>
+                            <h3>Arsitektur 3nm Bionic</h3>
+                            <p>35 triliun operasi neural per detik. Dilengkapi akselerasi hardware Ray Tracing untuk grafik setara konsol game modern.</p>
+                            <div class="tech-spec-badge">
+                                <span>3nm NODE • 6-CORE GPU</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bento Card 3: Camera Optics -->
+                    <div class="bento-card card-3d-tilt" data-scroll-reveal>
+                        <div class="bento-content">
+                            <span class="bento-tag">OPTIK PROFESIONAL</span>
+                            <h3>Sistem Tetraprisma 5x</h3>
+                            <p>Desain pantulan cahaya internal empat lapis dengan stabilisasi sensor optik 3D (OIS) untuk foto jarak jauh yang tajam tanpa noise.</p>
+                            <div class="tech-spec-badge">
+                                <span>120mm FOCAL LENGTH • F/2.8</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bento Card 4: Battery & Energy -->
+                    <div class="bento-card bento-wide card-3d-tilt" data-scroll-reveal>
+                        <div class="bento-content">
+                            <span class="bento-tag">MANAJEMEN DAYA PINTAR</span>
+                            <h3>Daya Tahan Baterai Seharian Penuh</h3>
+                            <p>Optimasi efisiensi silikon cerdas memberikan waktu putar video hingga 29 jam nonstop. Pengisian daya cepat 50% hanya dalam 25 menit dengan port universal USB-C berkecepatan 10Gbps.</p>
+                            <div class="battery-status-bar">
+                                <div class="battery-fill"></div>
+                                <span class="battery-label">100% Siap Kerja • Arsitektur Termal Pasif</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Counter Section (Minimalist Clean Numbers) -->
+        <section class="stats-counter-section">
+            <div class="container">
+                <div class="stats-counter-grid">
+                    <div class="stat-counter-card" data-scroll-reveal>
+                        <div class="stat-number-wrap">
+                            <span class="stat-number" data-target="25000">0</span>
+                            <span class="stat-suffix">+</span>
+                        </div>
+                        <div class="stat-title">Unit iPhone Tersewa</div>
+                        <p class="stat-caption">Dipercaya untuk event, konser musik, syuting, dan liburan.</p>
+                    </div>
+
+                    <div class="stat-counter-card" data-scroll-reveal>
+                        <div class="stat-number-wrap">
+                            <span class="stat-number" data-target="100">0</span>
+                            <span class="stat-suffix">%</span>
+                        </div>
+                        <div class="stat-title">Bebas iCloud & Original</div>
+                        <p class="stat-caption">Unit bersih siap login Apple ID pribadi Anda secara aman.</p>
+                    </div>
+
+                    <div class="stat-counter-card" data-scroll-reveal>
+                        <div class="stat-number-wrap">
+                            <span class="stat-number" data-target="24">0</span>
+                            <span class="stat-suffix">/7</span>
+                        </div>
+                        <div class="stat-title">Layanan Antar Cepat</div>
+                        <p class="stat-caption">Siap kirim instan Jabodetabek & kota-kota besar.</p>
+                    </div>
+
+                    <div class="stat-counter-card" data-scroll-reveal>
+                        <div class="stat-number-wrap">
+                            <span class="stat-number" data-target="4.9" data-decimal="true">0</span>
+                            <span class="stat-suffix">/5</span>
+                        </div>
+                        <div class="stat-title">Kepuasan Penyewa</div>
+                        <p class="stat-caption">Berdasarkan lebih dari 12.000 ulasan penyewa terverifikasi.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Product Catalog Section -->
+        <section id="products" class="products-section section-padding">
+            <div class="container">
+                <div class="section-header text-center" data-scroll-reveal>
+                    <span class="section-tag">LINI LENGKAP IPHONE 15 SERIES</span>
+                    <h2 class="section-title">Katalog Sewa iPhone 15 Series</h2>
+                    <p class="section-subtitle">Pilihan lengkap unit iPhone 15 Pro Max, iPhone 15 Pro, iPhone 15 Plus, dan iPhone 15 Standard. Unit 100% original, bebas akun iCloud, battery health 90%+, siap pakai dengan tarif sewa harian terjangkau.</p>
+                </div>
+
+                <!-- Minimalist Catalog Toolbar -->
+                <div class="catalog-toolbar" data-scroll-reveal>
+                    <div class="search-input-wrapper">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="search-input" placeholder="Cari varian iPhone 15 (contoh: 15 Pro Max, Natural, Blue, Plus, Pink)...">
+                        <button id="clear-search-btn" class="clear-search-btn" aria-label="Clear search" style="display:none;">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <!-- Category Tabs -->
+                    <div class="category-tabs" id="category-tabs">
+                        <button class="cat-tab active" data-category="All">Semua iPhone 15</button>
+                        <button class="cat-tab" data-category="ProMax">15 Pro Max</button>
+                        <button class="cat-tab" data-category="Pro">15 Pro</button>
+                        <button class="cat-tab" data-category="Plus">15 Plus</button>
+                        <button class="cat-tab" data-category="Standard">15 Standard</button>
+                    </div>
+
+                    <!-- Series Chips Filter -->
+                    <div class="brand-filter-chips" id="brand-filters"></div>
+
+                    <!-- Sort Selector -->
+                    <div class="sort-selector-wrapper">
+                        <label for="sort-select"><i class="fa-solid fa-arrow-down-short-wide"></i> Urutan:</label>
+                        <select id="sort-select" class="sort-dropdown">
+                            <option value="featured">Paling Populer Disewa</option>
+                            <option value="price-low">Tarif: Termurah ke Tertinggi</option>
+                            <option value="price-high">Tarif: Tertinggi ke Termurah</option>
+                            <option value="name">Tipe: A - Z</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Product Grid -->
+                <div class="product-grid" id="product-grid"></div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="empty-state" style="display:none;">
+                    <div class="empty-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+                    <h3>Perangkat Tidak Ditemukan</h3>
+                    <p>Silakan coba kata kunci lain atau pilih kategori yang berbeda.</p>
+                    <button class="btn-primary" id="btn-reset-filters">Reset Semua Filter</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Spec Comparison Section -->
+        <section id="compare" class="compare-section section-padding">
+            <div class="container">
+                <div class="section-header text-center" data-scroll-reveal>
+                    <span class="section-tag">KOMPARASI UNIT SEWA</span>
+                    <h2 class="section-title">Bandingkan Tipe iPhone Sewa</h2>
+                    <p class="section-subtitle">Pilih dua unit iPhone untuk membandingkan spesifikasi kamera, performa chipset, kapasitas baterai, dan tarif sewa harian secara berdampingan.</p>
+                </div>
+
+                <div class="compare-card-container" data-scroll-reveal>
+                    <div class="compare-selectors-bar">
+                        <div class="compare-select-col">
+                            <label>Unit iPhone Pertama</label>
+                            <select id="compare-device-1" class="compare-dropdown"></select>
+                        </div>
+                        <div class="compare-vs-badge">VS</div>
+                        <div class="compare-select-col">
+                            <label>Unit iPhone Kedua</label>
+                            <select id="compare-device-2" class="compare-dropdown"></select>
+                        </div>
+                    </div>
+
+                    <div class="compare-table-wrapper" id="compare-table-wrapper"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Rental Duration & Package Calculator Section -->
+        <section id="tradein" class="promo-section section-padding">
+            <div class="container">
+                <div class="tradein-glass-card" data-scroll-reveal>
+                    <div class="tradein-left">
+                        <span class="tradein-pill">PAKET SEWA FLEKSIBEL</span>
+                        <h2>Hitung Biaya Sewa iPhone & Dapatkan Diskon hingga 45%</h2>
+                        <p>Pilih tipe iPhone dan durasi sewa yang Anda inginkan. Semakin lama periode sewa Anda, semakin besar diskon tarif harian yang Anda dapatkan.</p>
+                        
+                        <div class="tradein-perks">
+                            <div class="tradein-perk-item">
+                                <i class="fa-solid fa-check"></i>
+                                <span>Paket Mingguan diskon 20%, Paket Bulanan hemat hingga 45%</span>
+                            </div>
+                            <div class="tradein-perk-item">
+                                <i class="fa-solid fa-check"></i>
+                                <span>Unit bebas akun iCloud, siap login Apple ID pribadi Anda</span>
+                            </div>
+                            <div class="tradein-perk-item">
+                                <i class="fa-solid fa-check"></i>
+                                <span>Termasuk kabel original Apple, adaptor fast-charge & softcase</span>
+                            </div>
+                            <div class="tradein-perk-item">
+                                <i class="fa-solid fa-check"></i>
+                                <span>Layanan antar-jemput unit langsung ke lokasi Anda</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tradein-right">
+                        <div class="tradein-calculator-box">
+                            <h4><i class="fa-solid fa-calculator"></i> Kalkulator Paket Sewa iPhone</h4>
+                            <div class="calc-field">
+                                <label>Pilih Tipe iPhone</label>
+                                <select id="trade-brand-select">
+                                    <option value="1">iPhone 15 Pro Max 1TB (Rp 195.000/hari)</option>
+                                    <option value="2">iPhone 15 Pro Max 512GB (Rp 185.000/hari)</option>
+                                    <option value="3">iPhone 15 Pro Max 256GB (Rp 175.000/hari)</option>
+                                    <option value="4">iPhone 15 Pro Max 256GB Black (Rp 175.000/hari)</option>
+                                    <option value="5">iPhone 15 Pro 512GB (Rp 160.000/hari)</option>
+                                    <option value="6">iPhone 15 Pro 256GB Blue (Rp 145.000/hari)</option>
+                                    <option value="7">iPhone 15 Pro 256GB White (Rp 145.000/hari)</option>
+                                    <option value="8">iPhone 15 Pro 128GB Black (Rp 135.000/hari)</option>
+                                    <option value="9">iPhone 15 Plus 256GB Pink (Rp 135.000/hari)</option>
+                                    <option value="10">iPhone 15 Plus 128GB Blue (Rp 125.000/hari)</option>
+                                    <option value="11">iPhone 15 Plus 128GB Black (Rp 125.000/hari)</option>
+                                    <option value="12">iPhone 15 256GB Pink (Rp 115.000/hari)</option>
+                                    <option value="13">iPhone 15 128GB Blue (Rp 100.000/hari)</option>
+                                    <option value="14">iPhone 15 128GB Green (Rp 100.000/hari)</option>
+                                    <option value="15">iPhone 15 128GB Yellow (Rp 100.000/hari)</option>
+                                    <option value="16">iPhone 15 128GB Black (Rp 100.000/hari)</option>
+                                </select>
+                            </div>
+                            <div class="calc-field">
+                                <label>Durasi Paket Sewa</label>
+                                <select id="trade-condition-select">
+                                    <option value="1">1 Hari (Tarif Harian Normal)</option>
+                                    <option value="3">3 Hari (Diskon Spesial 10%)</option>
+                                    <option value="7">7 Hari / 1 Minggu (Diskon Hemat 20%)</option>
+                                    <option value="14">14 Hari / 2 Minggu (Diskon 30%)</option>
+                                    <option value="30">30 Hari / 1 Bulan (Diskon Maksimal 45%)</option>
+                                </select>
+                            </div>
+                            <div class="calc-result">
+                                <span>Total Estimasi Biaya Sewa:</span>
+                                <div class="calc-price-estimate" id="calc-price-estimate">Rp 350.000</div>
+                                <div id="calc-price-note" style="font-size: 0.76rem; color: var(--accent-blue); margin-top: 4px;">Paket Sewa 1 Hari Normal</div>
+                            </div>
+                            <button class="btn-primary w-100" id="btn-claim-tradein">
+                                <i class="fa-solid fa-calendar-check"></i> Sewa Unit Ini Sekarang
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Customer Testimonials Section -->
+        <section id="reviews" class="reviews-section section-padding">
+            <div class="container">
+                <div class="section-header text-center" data-scroll-reveal>
+                    <span class="section-tag">TESTIMONI PENYEWA</span>
+                    <h2 class="section-title">Dipercaya Ribuan Kreator & Event</h2>
+                    <p class="section-subtitle">Pengalaman nyata dari penyewa yang mengandalkan unit iPhone dari Pone Rent untuk konser, produksi video, dan liburan.</p>
+                </div>
+
+                <div class="reviews-grid">
+                    <div class="review-card card-3d-tilt" data-scroll-reveal>
+                        <div class="review-stars">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                        <p class="review-text">"Sewa iPhone 15 Pro Max 3 hari untuk syuting video klip di Bandung. Unit 100% mulus, baterai prima, bebas login akun iCloud sendiri, dan studio 3D di web sangat membantu cek fisik unit!"</p>
+                        <div class="reviewer-info">
+                            <div class="reviewer-avatar">RA</div>
+                            <div>
+                                <div class="reviewer-name">Rian Anggara</div>
+                                <div class="reviewer-role">Penyewa Terverifikasi • iPhone 15 Pro Max (3 Hari)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="review-card card-3d-tilt" data-scroll-reveal>
+                        <div class="review-stars">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                        <p class="review-text">"Sewa iPhone 15 Pro buat nonton konser idola. Hasil video 4K 60fps dan zoom panggung luar biasa jernih. Paket sewa sudah include case dan charger cepat original."</p>
+                        <div class="reviewer-info">
+                            <div class="reviewer-avatar">DS</div>
+                            <div>
+                                <div class="reviewer-name">Dina Safitri</div>
+                                <div class="reviewer-role">Penyewa Terverifikasi • iPhone 15 Pro (Weekend)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="review-card card-3d-tilt" data-scroll-reveal>
+                        <div class="review-stars">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                        <p class="review-text">"Sewa iPhone 15 Pro Max 1 minggu buat traveling ke Jepang. Lebih hemat jauh dibanding beli baru, bodi titanium sangat ringan, dan kamera 5x zoom-nya fantastis!"</p>
+                        <div class="reviewer-info">
+                            <div class="reviewer-avatar">MH</div>
+                            <div>
+                                <div class="reviewer-name">Michael Hendrawan</div>
+                                <div class="reviewer-role">Penyewa Terverifikasi • iPhone 15 Pro Max (7 Hari)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-col brand-col">
+                <a href="#home" class="logo">
+                    <span class="logo-mark"><i class="fa-solid fa-mobile-screen-button"></i></span>
+                    Pone<span class="logo-accent">Rent</span>
+                </a>
+                <p>Penyedia jasa sewa iPhone 15 Series resmi terlengkap di Indonesia: iPhone 15 Pro Max Titanium, 15 Pro, 15 Plus, dan 15 Standard. Unit 100% original, bebas akun iCloud, battery health prima, tarif fleksibel untuk harian, mingguan, dan bulanan.</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h4>Lini Unit Sewa</h4>
+                <a href="#products">iPhone 15 Pro Max</a>
+                <a href="#products">iPhone 15 Pro</a>
+                <a href="#products">iPhone 15 Plus</a>
+                <a href="#products">iPhone 15 Standard</a>
+                <a href="#tradein">Kalkulator Paket Sewa</a>
+            </div>
+
+            <div class="footer-col">
+                <h4>Ketentuan & Layanan</h4>
+                <a href="#">Syarat & Ketentuan Sewa</a>
+                <a href="#">Ketentuan Deposit / Jaminan</a>
+                <a href="#">Layanan Antar Jemput Unit</a>
+                <a href="#">Bebas iCloud & Reset Otomatis</a>
+                <a href="#">Hubungi Customer Support</a>
+            </div>
+
+            <div class="footer-col">
+                <h4>Keamanan Transaksi</h4>
+                <p class="text-muted" style="margin-bottom: 15px;">Transaksi resmi dan aman dengan enkripsi SSL 256-Bit:</p>
+                <div class="payment-badges">
+                    <span class="payment-chip"><i class="fa-brands fa-cc-visa"></i> VISA</span>
+                    <span class="payment-chip"><i class="fa-brands fa-cc-mastercard"></i> Mastercard</span>
+                    <span class="payment-chip"><i class="fa-solid fa-qrcode"></i> QRIS</span>
+                    <span class="payment-chip"><i class="fa-solid fa-building-columns"></i> Virtual Account</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="container footer-bottom-flex">
+                <p>&copy; 2026 Pone Rent Indonesia. Hak Cipta Dilindungi.</p>
+                <div class="footer-legal-links">
+                    <a href="#">Kebijakan Privasi</a>
+                    <a href="#">Syarat & Ketentuan Sewa</a>
+                    <a href="#">Perjanjian Sewa Perangkat</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Shopping Bag Drawer Sidebar -->
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <aside class="cart-sidebar" id="cart-sidebar" aria-label="Rental Cart">
+        <div class="cart-header">
+            <div class="cart-header-title">
+                <i class="fa-solid fa-calendar-check"></i>
+                <h3>Daftar Sewa Unit</h3>
+                <span class="cart-count-pill" id="cart-count-pill">0 unit</span>
+            </div>
+            <button class="close-btn" id="close-cart" aria-label="Tutup keranjang"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="cart-promo-banner">
+            <i class="fa-solid fa-tag"></i>
+            <span>Gunakan kode <strong>RENT2026</strong> untuk potongan biaya sewa Rp 50.000</span>
+        </div>
+
+        <div class="cart-items" id="cart-items"></div>
+
+        <div class="cart-footer">
+            <div class="cart-coupon-wrap">
+                <input type="text" id="coupon-code-input" placeholder="Kode Promo Sewa..." uppercase>
+                <button id="btn-apply-coupon" class="btn-coupon">Terapkan</button>
+            </div>
+            <div id="coupon-feedback" class="coupon-feedback"></div>
+
+            <div class="cart-summary-breakdown">
+                <div class="summary-row">
+                    <span>Subtotal Sewa:</span>
+                    <span id="cart-subtotal-price">Rp 0</span>
+                </div>
+                <div class="summary-row discount-row" id="discount-row" style="display:none;">
+                    <span>Diskon Promo:</span>
+                    <span id="cart-discount-price">- Rp 0</span>
+                </div>
+                <div class="summary-row total-row">
+                    <span>Total Estimasi Sewa:</span>
+                    <span id="cart-total-price">Rp 0</span>
+                </div>
+            </div>
+
+            <button class="btn-primary w-100" id="btn-checkout">
+                <span>Lanjut ke Formulir Sewa</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Product Detail & 3D Inspector Modal -->
+    <div class="modal" id="product-modal" role="dialog" aria-modal="true">
+        <div class="modal-content product-modal-content">
+            <button class="close-modal" id="close-product-modal" aria-label="Tutup modal"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="modal-nav-tabs">
+                <button class="modal-tab-btn active" id="tab-btn-overview" data-tab="overview">
+                    <i class="fa-solid fa-image"></i> Detail Unit & Tarif
+                </button>
+                <button class="modal-tab-btn" id="tab-btn-3d" data-tab="inspector3d">
+                    <i class="fa-solid fa-cube"></i> Studio 3D Interaktif
+                </button>
+            </div>
+
+            <div class="modal-body" id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Standalone 3D Studio Modal -->
+    <div class="modal" id="studio-3d-modal" role="dialog" aria-modal="true">
+        <div class="modal-content studio-modal-content">
+            <button class="close-modal" id="close-studio-modal" aria-label="Tutup studio"><i class="fa-solid fa-xmark"></i></button>
+            <div class="studio-header">
+                <h3><i class="fa-solid fa-cube"></i> PoneRent 3D Virtual Studio</h3>
+                <p>Eksplorasi struktur bodi Grade 5 Titanium asli, modul kamera presisi, dan kondisi fisik unit sewa 360°.</p>
+            </div>
+            <div class="studio-body">
+                <div id="modal-3d-canvas-container" class="studio-canvas-container"></div>
+                <div class="studio-controls-panel">
+                    <div class="studio-control-group">
+                        <label>Pilihan Warna Titanium:</label>
+                        <div class="color-options" id="studio-color-options">
+                            <button class="color-swatch active" data-color="#8a857b" data-name="Natural Titanium" style="--swatch-color: #8a857b;"></button>
+                            <button class="color-swatch" data-color="#2b3846" data-name="Blue Titanium" style="--swatch-color: #2b3846;"></button>
+                            <button class="color-swatch" data-color="#e2e4e7" data-name="White Titanium" style="--swatch-color: #e2e4e7;"></button>
+                            <button class="color-swatch" data-color="#1f2124" data-name="Black Titanium" style="--swatch-color: #1f2124;"></button>
+                        </div>
+                        <span class="active-color-name" id="studio-color-name">Natural Titanium</span>
+                    </div>
+
+                    <div class="studio-control-group">
+                        <label>Sudut Kamera Studio:</label>
+                        <div class="preset-buttons" id="modal-studio-angle-presets">
+                            <button class="preset-btn active" data-angle="isometric"><i class="fa-solid fa-cube"></i> Isometric</button>
+                            <button class="preset-btn" data-angle="front"><i class="fa-solid fa-mobile-screen"></i> Front</button>
+                            <button class="preset-btn" data-angle="dynamic"><i class="fa-solid fa-compass"></i> Dynamic</button>
+                            <button class="preset-btn" data-angle="back"><i class="fa-solid fa-shield"></i> Back</button>
+                        </div>
+                    </div>
+
+                    <div class="studio-action-row">
+                        <button id="studio-spin-btn" class="btn-subtle"><i class="fa-solid fa-rotate"></i> Auto-Rotate</button>
+                        <button id="studio-reset-btn" class="btn-subtle"><i class="fa-solid fa-arrow-rotate-left"></i> Reset Sudut</button>
+                    </div>
+
+                    <div class="studio-spec-callout">
+                        <div class="callout-item"><i class="fa-solid fa-check"></i> Model 3D GLTF Realistis (Titanium Asli)</div>
+                        <div class="callout-item"><i class="fa-solid fa-check"></i> Pencahayaan PBR Studio Netral</div>
+                        <div class="callout-item"><i class="fa-solid fa-check"></i> Wallpaper Titanium Resmi Apple</div>
+                    </div>
+
+                    <button class="btn-primary w-100" id="btn-studio-buy-now" onclick="addToCartWithAnimation(7, this); closeAllModals();">
+                        <i class="fa-solid fa-calendar-check"></i> Sewa iPhone 15 Pro Max (Rp 180.000/hari)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal (Rental Order Form) -->
+    <div class="modal" id="checkout-modal" role="dialog" aria-modal="true">
+        <div class="modal-content checkout-content">
+            <button class="close-modal" id="close-checkout-modal" aria-label="Tutup pembayaran"><i class="fa-solid fa-xmark"></i></button>
+            <div class="checkout-header">
+                <i class="fa-solid fa-shield-halved"></i>
+                <h2>Formulir Pemesanan Sewa iPhone</h2>
+                <p>Isi informasi penyewa dan jadwal untuk pengantaran unit.</p>
+            </div>
+            
+            <form id="checkout-form">
+                <div class="form-group">
+                    <label for="checkout-name">Nama Lengkap Penyewa</label>
+                    <input type="text" id="checkout-name" required placeholder="Contoh: Budi Santoso (Sesuai KTP)">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="checkout-phone">Nomor WhatsApp Aktif</label>
+                        <input type="tel" id="checkout-phone" required placeholder="081234567890">
+                    </div>
+                    <div class="form-group">
+                        <label for="checkout-email">Email Konfirmasi</label>
+                        <input type="email" id="checkout-email" required placeholder="nama@email.com">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="checkout-address">Alamat Pengiriman / Pengambilan Unit</label>
+                    <textarea id="checkout-address" required placeholder="Alamat lengkap, nama jalan, gedung/rumah, RT/RW, kota/kabupaten..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Metode Pembayaran Sewa</label>
+                    <div class="payment-method-options">
+                        <label class="pay-option">
+                            <input type="radio" name="payment-method" value="qris" checked>
+                            <span class="pay-option-box">
+                                <i class="fa-solid fa-qrcode"></i>
+                                <span>QRIS Instan (BCA, GoPay, OVO, ShopeePay)</span>
+                            </span>
+                        </label>
+                        <label class="pay-option">
+                            <input type="radio" name="payment-method" value="va">
+                            <span class="pay-option-box">
+                                <i class="fa-solid fa-building-columns"></i>
+                                <span>Virtual Account (BCA, Mandiri, BNI, BRI)</span>
+                            </span>
+                        </label>
+                        <label class="pay-option">
+                            <input type="radio" name="payment-method" value="cod">
+                            <span class="pay-option-box">
+                                <i class="fa-solid fa-handshake"></i>
+                                <span>COD / Bayar Saat Unit Diterima & Diinspeksi</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="checkout-order-total-preview">
+                    <span>Total Biaya Sewa:</span>
+                    <strong id="checkout-final-amount">Rp 0</strong>
+                </div>
+
+                <button type="submit" class="btn-primary w-100" id="btn-submit-order">
+                    <span>Konfirmasi & Ajukan Pemesanan Sewa</span>
+                    <i class="fa-solid fa-check"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Success Celebration Modal -->
+    <div class="modal" id="order-success-modal" role="dialog" aria-modal="true">
+        <div class="modal-content success-modal-content text-center">
+            <button class="close-modal" id="close-success-modal" aria-label="Tutup konfirmasi"><i class="fa-solid fa-xmark"></i></button>
+            <div class="success-icon-badge">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h2>Pesanan Sewa Berhasil Dikonfirmasi!</h2>
+            <p class="text-muted">Invoice sewa, perjanjian peminjaman, dan jadwal kurir telah dikirimkan ke WhatsApp & Email Anda.</p>
+            
+            <div class="order-receipt-card">
+                <div class="receipt-row">
+                    <span>Nomor Reservasi:</span>
+                    <strong id="receipt-order-id">RENT-883921</strong>
+                </div>
+                <div class="receipt-row">
+                    <span>Status Unit:</span>
+                    <span class="badge-success"><i class="fa-solid fa-check"></i> Unit Siap & Bebas iCloud</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Pengantaran:</span>
+                    <span>Kurir Express Pone Rent (Berasuransi)</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Total Transaksi:</span>
+                    <strong class="receipt-total" id="receipt-total-amount">Rp 0</strong>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="btn-back-to-shop">
+                Kembali ke Beranda
+            </button>
+        </div>
+    </div>
+
+    <!-- Studio Mockup Fullscreen Inspector Modal -->
+    <div class="modal" id="mockup-viewer-modal" role="dialog" aria-modal="true">
+        <div class="modal-content mockup-modal-content">
+            <button class="close-modal" id="close-mockup-modal" aria-label="Tutup peninjau studio"><i class="fa-solid fa-xmark"></i></button>
+            <div class="mockup-modal-header">
+                <span class="section-tag"><i class="fa-solid fa-wand-magic-sparkles"></i> PREVIEWED.APP STUDIO INSPECTOR</span>
+                <h3 id="mockup-modal-title">Isometric 3D Studio Mockup</h3>
+            </div>
+            <div class="mockup-modal-body">
+                <img id="mockup-modal-img" src="previewed_apple_iphone.png" alt="Full Preview" class="mockup-modal-image">
+            </div>
+            <div class="mockup-modal-footer">
+                <a id="btn-download-mockup" href="previewed_apple_iphone.png" download="iphone-15-pro-previewed.png" class="btn-primary">
+                    <i class="fa-solid fa-download"></i> Unduh Resolusi Asli
+                </a>
+                <button class="btn-secondary" id="btn-modal-to-3d">
+                    <i class="fa-solid fa-cube"></i> Buka Model 3D
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Floating Bottom Navigation Bar -->
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+        <a href="#home" class="mobile-bottom-tab active" id="tab-home">
+            <i class="fa-solid fa-house"></i>
+            <span>Studio</span>
+        </a>
+        <a href="#products" class="mobile-bottom-tab" id="tab-catalog">
+            <i class="fa-solid fa-mobile-screen"></i>
+            <span>Katalog</span>
+        </a>
+        <a href="#compare" class="mobile-bottom-tab" id="tab-compare">
+            <i class="fa-solid fa-code-compare"></i>
+            <span>Komparasi</span>
+        </a>
+        <button class="mobile-bottom-tab" id="mobile-wishlist-trigger">
+            <i class="fa-regular fa-heart"></i>
+            <span>Wishlist</span>
+            <span class="badge" id="mobile-wishlist-badge">0</span>
+        </button>
+        <button class="mobile-bottom-tab" id="mobile-cart-trigger">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <span>Bag</span>
+            <span class="badge" id="mobile-cart-badge">0</span>
+        </button>
+    </nav>
+
+    <!-- Floating Back to Top with Circular Progress -->
+    <button class="back-to-top" id="back-to-top" aria-label="Kembali ke atas">
+        <svg class="progress-ring" width="44" height="44">
+            <circle class="progress-ring-circle" stroke="var(--accent-blue)" stroke-width="2.5" fill="transparent" r="19" cx="22" cy="22"/>
+        </svg>
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <!-- App Engine Script -->
+    <script src="script.js"></script>
+</body>
+</html>
