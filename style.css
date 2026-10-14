@@ -353,18 +353,7 @@ img {
     border: 2px solid var(--bg-color);
 }
 
-.sound-dot {
-    position: absolute;
-    bottom: 6px;
-    width: 4px;
-    height: 4px;
-    background: var(--accent-emerald);
-    border-radius: 50%;
-}
 
-.sound-muted .sound-dot {
-    background: var(--danger-color);
-}
 
 .hamburger {
     display: none;
@@ -1208,253 +1197,6 @@ img {
     color: var(--text-muted);
     max-width: 220px;
     margin: 0 auto;
-}
-
-/* ---------- PREVIEWED.APP STUDIO SHOWCASE SECTION ---------- */
-.studio-showcase-section {
-    position: relative;
-    background: var(--bg-color);
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.studio-showcase-card {
-    background: var(--surface-color);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-md);
-    transition: border-color var(--transition-normal);
-}
-
-.studio-showcase-card:hover {
-    border-color: var(--border-highlight);
-}
-
-.studio-mockup-tabs {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 14px 20px;
-    background: rgba(255, 255, 255, 0.015);
-    border-bottom: 1px solid var(--border-color);
-    overflow-x: auto;
-}
-
-.studio-tab-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 9px 18px;
-    border-radius: var(--radius-full);
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--text-muted);
-    font-size: 0.84rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    white-space: nowrap;
-}
-
-.studio-tab-btn:hover {
-    color: var(--text-main);
-    background: rgba(255, 255, 255, 0.04);
-}
-
-.studio-tab-btn.active {
-    background: var(--surface-elevated);
-    color: var(--text-main);
-    border-color: var(--border-color);
-    box-shadow: var(--shadow-sm);
-}
-
-.studio-stage-wrapper {
-    display: grid;
-    grid-template-columns: 1.3fr 1fr;
-    gap: 40px;
-    padding: 36px 40px;
-    align-items: center;
-}
-
-.studio-stage-preview {
-    position: relative;
-    border-radius: var(--radius-md);
-    background: radial-gradient(circle at 50% 50%, #16171b 0%, #0a0b0d 100%);
-    border: 1px solid var(--border-color);
-    padding: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 420px;
-    overflow: hidden;
-}
-
-.studio-preview-img {
-    max-width: 100%;
-    max-height: 380px;
-    object-fit: contain;
-    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.7));
-    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
-}
-
-.studio-preview-img:hover {
-    transform: scale(1.03);
-}
-
-.studio-stage-badge {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 5px 12px;
-    border-radius: var(--radius-full);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    color: #e5e5ea;
-}
-
-.pulse-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #34c759;
-    box-shadow: 0 0 8px #34c759;
-}
-
-.studio-stage-info {
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-}
-
-.info-pretitle {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--accent-blue);
-    letter-spacing: 1.2px;
-    display: block;
-    margin-bottom: 8px;
-}
-
-.studio-info-header h3 {
-    font-family: var(--font-heading);
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--text-main);
-    letter-spacing: -0.5px;
-    margin-bottom: 12px;
-}
-
-.studio-info-header p {
-    font-size: 0.95rem;
-    color: var(--text-muted);
-    line-height: 1.6;
-}
-
-.studio-feature-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.studio-feat-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.88rem;
-    color: var(--text-main);
-}
-
-.studio-feat-item i {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: rgba(0, 113, 227, 0.15);
-    color: var(--accent-blue);
-    font-size: 0.7rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-.studio-stage-actions {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    padding-top: 10px;
-}
-
-/* Mockup Modal Styles */
-.mockup-modal-content {
-    max-width: 900px;
-    width: 90%;
-    background: var(--surface-color);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 32px;
-    position: relative;
-    box-shadow: var(--shadow-lg);
-}
-
-.mockup-modal-header {
-    margin-bottom: 20px;
-}
-
-.mockup-modal-header h3 {
-    font-family: var(--font-heading);
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-main);
-    margin-top: 4px;
-}
-
-.mockup-modal-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #090a0d;
-    border-radius: var(--radius-md);
-    padding: 30px;
-    border: 1px solid var(--border-color);
-    margin-bottom: 20px;
-    max-height: 60vh;
-    overflow: hidden;
-}
-
-.mockup-modal-image {
-    max-width: 100%;
-    max-height: 50vh;
-    object-fit: contain;
-}
-
-.mockup-modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 12px;
-}
-
-/* Responsiveness for Studio Showcase */
-@media (max-width: 992px) {
-    .studio-stage-wrapper {
-        grid-template-columns: 1fr;
-        padding: 24px;
-        gap: 28px;
-    }
-    
-    .studio-stage-preview {
-        min-height: 300px;
-        padding: 20px;
-    }
 }
 
 /* ---------- CATALOG & TOOLBAR ---------- */
@@ -2646,7 +2388,87 @@ footer {
     width: 100%;
     height: 100%;
     min-height: 480px;
+    position: relative;
 }
+
+.inline-studio-controls {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.inline-studio-badge {
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    padding: 7px 14px;
+    border-radius: var(--radius-full);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    pointer-events: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.inline-studio-badge i {
+    color: var(--accent-blue);
+}
+
+.btn-open-full-studio {
+    background: var(--surface-card);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 7px 16px;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    pointer-events: auto;
+    transition: all var(--transition-fast);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.btn-open-full-studio:hover {
+    background: var(--accent-blue);
+    color: #ffffff;
+    border-color: var(--accent-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+}
+
+@media (max-width: 768px) {
+    .modal-3d-view {
+        min-height: 320px;
+    }
+    .inline-studio-controls {
+        flex-direction: column;
+        align-items: stretch;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        gap: 6px;
+    }
+    .inline-studio-badge, .btn-open-full-studio {
+        justify-content: center;
+        font-size: 0.72rem;
+        padding: 6px 10px;
+    }
+}
+
 
 /* Standalone 3D Virtual Studio */
 .studio-modal-content {
@@ -3065,12 +2887,6 @@ footer {
         gap: 36px;
     }
 
-    .studio-stage-wrapper {
-        grid-template-columns: 1fr;
-        gap: 28px;
-        padding: 28px;
-    }
-
     .tradein-glass-card {
         grid-template-columns: 1fr;
     }
@@ -3138,10 +2954,19 @@ footer {
     }
 
     .hero-3d-wrapper {
-        height: 380px;
+        height: 420px;
         width: 100%;
         max-width: 100%;
         overflow: hidden;
+    }
+
+    .scroll-indicator {
+        position: static;
+        left: auto;
+        bottom: auto;
+        transform: none;
+        margin: 28px auto 10px;
+        z-index: 2;
     }
 
     .feature-tag {
@@ -3169,25 +2994,6 @@ footer {
 
     .bento-large, .bento-wide {
         grid-column: span 1;
-    }
-
-    .studio-showcase-section {
-        padding: 48px 0;
-    }
-
-    .studio-stage-wrapper {
-        grid-template-columns: 1fr;
-        padding: 20px 16px;
-        gap: 20px;
-    }
-
-    .studio-stage-preview {
-        min-height: 280px;
-        padding: 20px 10px;
-    }
-
-    .studio-preview-img {
-        max-height: 260px;
     }
 
     .reviews-grid {
@@ -3427,10 +3233,19 @@ footer {
     }
 
     .hero-3d-wrapper {
-        height: 310px;
+        height: 380px;
         width: 100%;
         max-width: 100%;
         overflow: hidden;
+    }
+
+    .scroll-indicator {
+        position: static;
+        left: auto;
+        bottom: auto;
+        transform: none;
+        margin: 22px auto 8px;
+        z-index: 2;
     }
 
     .studio-presets-toolbar {
@@ -3520,88 +3335,6 @@ footer {
 
     .stat-caption {
         font-size: 0.72rem;
-    }
-
-    /* Studio Showcase Card on HP */
-    .studio-showcase-card {
-        border-radius: var(--radius-md);
-    }
-
-    .studio-mockup-tabs {
-        padding: 10px 12px;
-        gap: 6px;
-    }
-
-    .studio-tab-btn {
-        padding: 7px 12px;
-        font-size: 0.74rem;
-    }
-
-    .studio-stage-wrapper {
-        padding: 16px 12px;
-        gap: 16px;
-    }
-
-    .studio-stage-preview {
-        min-height: 220px;
-        padding: 16px 8px;
-    }
-
-    .studio-preview-img {
-        max-height: 200px;
-    }
-
-    .studio-info-header h3 {
-        font-size: 1.35rem;
-    }
-
-    .studio-info-header p {
-        font-size: 0.85rem;
-    }
-
-    .studio-feat-item {
-        font-size: 0.8rem;
-    }
-
-    .studio-stage-actions {
-        flex-direction: column;
-        width: 100%;
-        gap: 8px;
-    }
-
-    .studio-stage-actions .btn-primary,
-    .studio-stage-actions .btn-secondary {
-        width: 100%;
-        font-size: 0.85rem;
-        padding: 12px;
-    }
-
-    /* Fullscreen Mockup Modal on HP */
-    .mockup-modal-content {
-        padding: 18px 14px;
-        width: 95%;
-        max-height: 85vh;
-    }
-
-    .mockup-modal-header h3 {
-        font-size: 1.15rem;
-    }
-
-    .mockup-modal-body {
-        padding: 12px 6px;
-        max-height: 48vh;
-    }
-
-    .mockup-modal-footer {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .mockup-modal-footer .btn-primary,
-    .mockup-modal-footer .btn-secondary {
-        width: 100%;
-        font-size: 0.85rem;
-        padding: 12px;
     }
 
     /* Catalog Toolbar on HP */

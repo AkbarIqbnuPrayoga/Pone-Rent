@@ -260,7 +260,7 @@ let activeBrand = 'All';
 let searchQuery = '';
 let currentSort = 'featured';
 let appliedCoupon = null;
-let soundEnabled = localStorage.getItem('ponestore_sound') !== 'false';
+let soundEnabled = true;
 
 // 3D Engine State
 let hero3D = {
@@ -274,7 +274,7 @@ let hero3D = {
     isDragging: false,
     prevPointer: { x: 0, y: 0 },
     autoSpin: true,
-    targetRotation: { x: 0.35, y: -0.58 }, // Default to Previewed.app Isometric Studio perspective
+    targetRotation: { x: 0.35, y: -0.58 }, // Default to Isometric Studio perspective
     currentRotation: { x: 0.35, y: -0.58 },
     currentColor: "#8a857b",
     preloadedWallpapers: {}
@@ -299,7 +299,7 @@ let modal3D = {
 };
 
 // ==========================================
-// 3. REFINED AUDIO SYNTHESIZER (SUBTLE & QUIET)
+// 3. REFINED AUDIO SYNTHESIZER (INSTANT & SEAMLESS)
 // ==========================================
 class SoundFX {
     constructor() {
@@ -314,7 +314,6 @@ class SoundFX {
     }
 
     playClick() {
-        if (!soundEnabled) return;
         this.init();
         if (!this.ctx) return;
         if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -335,7 +334,6 @@ class SoundFX {
     }
 
     playChime() {
-        if (!soundEnabled) return;
         this.init();
         if (!this.ctx) return;
         if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -358,7 +356,6 @@ class SoundFX {
     }
 
     playWhoosh() {
-        if (!soundEnabled) return;
         this.init();
         if (!this.ctx) return;
         if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -369,7 +366,7 @@ class SoundFX {
         osc.frequency.setValueAtTime(180, this.ctx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(360, this.ctx.currentTime + 0.08);
 
-        gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
 
         osc.connect(gain);
@@ -380,6 +377,22 @@ class SoundFX {
 }
 
 const audioFX = new SoundFX();
+
+// Auto-unlock Web Audio context on first user interaction
+function autoUnlockAudio() {
+    audioFX.init();
+    if (audioFX.ctx && audioFX.ctx.state === 'suspended') {
+        audioFX.ctx.resume();
+    }
+    window.removeEventListener('pointerdown', autoUnlockAudio);
+    window.removeEventListener('touchstart', autoUnlockAudio);
+    window.removeEventListener('click', autoUnlockAudio);
+    window.removeEventListener('keydown', autoUnlockAudio);
+}
+window.addEventListener('pointerdown', autoUnlockAudio, { passive: true });
+window.addEventListener('touchstart', autoUnlockAudio, { passive: true });
+window.addEventListener('click', autoUnlockAudio, { passive: true });
+window.addEventListener('keydown', autoUnlockAudio, { passive: true });
 
 // ==========================================
 // 4. FORMATTERS & HELPERS
@@ -689,6 +702,154 @@ function buildProceduralPhone(primaryColorHex = "#8a857b") {
 }
 
 // ==========================================
+// SHARED 3D IPHONE 15 ASSET & GLTF FACTORY
+// ==========================================
+const titaniumWallpapers = {
+    "#8a857b": "iphone_15_pro_yellow.png", // Natural Titanium
+    "#2b3846": "iphone_15_pro_blue.png",   // Blue Titanium
+    "#e2e4e7": "iphone_15_pro_white.png",  // White Titanium
+    "#1f2124": "iphone_15_pro_black.png"   // Black Titanium
+};
+
+function getWallpaperForColor(hex) {
+    if (!hex) return 'iphone_15_pro_yellow.png';
+    const lower = String(hex).toLowerCase();
+    if (titaniumWallpapers[lower]) return titaniumWallpapers[lower];
+    if (lower.startsWith('#2') || lower.startsWith('#1')) return 'iphone_15_pro_black.png';
+    if (lower.startsWith('#e') || lower.startsWith('#d')) return 'iphone_15_pro_white.png';
+    if (lower.startsWith('#3') || lower.startsWith('#4')) return 'iphone_15_pro_blue.png';
+    return 'iphone_15_pro_yellow.png';
+}
+
+let cachedGLTFScene = null;
+let gltfLoadPromise = null;
+
+function loadIphone15GLTF() {
+    if (cachedGLTFScene) {
+        return Promise.resolve(cachedGLTFScene);
+    }
+    if (gltfLoadPromise) {
+        return gltfLoadPromise;
+    }
+
+    gltfLoadPromise = new Promise((resolve, reject) => {
+        if (typeof THREE.GLTFLoader !== 'function') {
+            return reject(new Error('THREE.GLTFLoader is not available'));
+        }
+
+        const loader = new THREE.GLTFLoader();
+        if (typeof THREE.DRACOLoader === 'function') {
+            const dracoLoader = new THREE.DRACOLoader();
+            dracoLoader.setDecoderPath('draco/');
+            loader.setDRACOLoader(dracoLoader);
+        }
+
+        loader.load(
+            'iphone.glb',
+            (gltf) => {
+                const realModel = gltf.scene;
+
+                // Center model at origin
+                const box = new THREE.Box3().setFromObject(realModel);
+                const size = new THREE.Vector3();
+                box.getSize(size);
+                const center = new THREE.Vector3();
+                box.getCenter(center);
+                realModel.position.sub(center);
+
+                // Scale to fit cleanly (~4.35 units height)
+                const targetHeight = 4.35;
+                const scale = targetHeight / (size.y || 15.9);
+                realModel.scale.set(scale, scale, scale);
+
+                // In iphone.glb, front screen mesh is oriented at -Z.
+                // Rotate 180 deg (Math.PI) so front screen faces +Z directly towards camera!
+                realModel.rotation.y = Math.PI;
+
+                cachedGLTFScene = realModel;
+                resolve(cachedGLTFScene);
+            },
+            undefined,
+            (err) => {
+                gltfLoadPromise = null;
+                console.warn("Error loading iphone.glb:", err);
+                reject(err);
+            }
+        );
+    });
+
+    return gltfLoadPromise;
+}
+
+function createIphone15GLTFInstance(targetColor = "#8a857b") {
+    if (!cachedGLTFScene) return null;
+
+    const clonedModel = cachedGLTFScene.clone(true);
+    const tintMaterials = [];
+    let screenMat = null;
+
+    clonedModel.traverse((child) => {
+        if (child.isMesh && child.material) {
+            // Material deep clone so each instance (Hero, Modal, Catalog) is fully independent
+            child.material = child.material.clone();
+            child.castShadow = true;
+            child.receiveShadow = true;
+
+            const matName = child.material.name || '';
+
+            // Front Screen material (pIJKfZsazmcpEiU in iPhone 15 Pro model)
+            if (matName.includes('pIJKfZsazmcpEiU')) {
+                screenMat = child.material;
+                screenMat.color.setHex(0xffffff);
+                screenMat.roughness = 0.12;
+                screenMat.metalness = 0.05;
+
+                const wallPath = getWallpaperForColor(targetColor);
+                new THREE.TextureLoader().load(wallPath, (tex) => {
+                    tex.flipY = false;
+                    if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+                    screenMat.map = tex;
+                    screenMat.needsUpdate = true;
+                });
+            }
+
+            // Titanium frame, backplate, and camera bezel materials
+            if (matName.includes('dxCVrUCvYhjVxqy') || matName.includes('yhcAXNGcJWCqtIS') || matName.includes('mcPrzcBUcdqUybC') || matName.includes('oZRkkORNzkufnGD')) {
+                child.material.color.set(targetColor);
+                tintMaterials.push(child.material);
+            }
+        }
+    });
+
+    const wrapper = new THREE.Group();
+    wrapper.add(clonedModel);
+
+    return {
+        wrapper,
+        clonedModel,
+        tintMaterials,
+        screenMaterial: screenMat,
+        setColor: (newHex) => {
+            const target = new THREE.Color(newHex);
+            tintMaterials.forEach(m => {
+                if (m && m.color) {
+                    gsap.to(m.color, { r: target.r, g: target.g, b: target.b, duration: 0.45 });
+                }
+            });
+            if (screenMat) {
+                const wallPath = getWallpaperForColor(newHex);
+                new THREE.TextureLoader().load(wallPath, (tex) => {
+                    tex.flipY = false;
+                    if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+                    screenMat.map = tex;
+                    screenMat.needsUpdate = true;
+                });
+            }
+        }
+    };
+}
+
+// ==========================================
 // 6. INITIALIZE HERO 3D SCENE
 // ==========================================
 function initHero3D() {
@@ -751,14 +912,7 @@ function initHero3D() {
     hero3D.scene.add(particleMesh);
     hero3D.particles = particleMesh;
 
-    // Titanium Finish Wallpapers (Official Apple iPhone 15 Pro Finishes)
-    const titaniumWallpapers = {
-        "#8a857b": "iphone_15_pro_yellow.png", // Natural Titanium
-        "#2b3846": "iphone_15_pro_blue.png",   // Blue Titanium
-        "#e2e4e7": "iphone_15_pro_white.png",  // White Titanium
-        "#1f2124": "iphone_15_pro_black.png"   // Black Titanium
-    };
-
+    // Preload wallpapers
     const textureLoader = new THREE.TextureLoader();
     hero3D.preloadedWallpapers = {};
     Object.keys(titaniumWallpapers).forEach(k => {
@@ -783,91 +937,29 @@ function initHero3D() {
     hero3D.scene.add(hero3D.phoneGroup);
 
     // 2. Load the REAL iPhone 15 Pro 3D Model (iphone.glb with DracoLoader)
-    if (typeof THREE.GLTFLoader === 'function') {
-        const loader = new THREE.GLTFLoader();
+    loadIphone15GLTF().then(() => {
+        const instance = createIphone15GLTFInstance(hero3D.currentColor);
+        if (!instance) return;
 
-        if (typeof THREE.DRACOLoader === 'function') {
-            const dracoLoader = new THREE.DRACOLoader();
-            dracoLoader.setDecoderPath('draco/');
-            loader.setDRACOLoader(dracoLoader);
+        // Seamlessly swap placeholder with the real iPhone 15 Pro model
+        if (hero3D.phoneGroup) {
+            hero3D.scene.remove(hero3D.phoneGroup);
         }
 
-        loader.load(
-            'iphone.glb',
-            (gltf) => {
-                const realModel = gltf.scene;
+        hero3D.instance = instance;
+        hero3D.phoneGroup = instance.wrapper;
+        hero3D.tintMaterials = instance.tintMaterials;
+        hero3D.screenMaterial = instance.screenMaterial;
 
-                // Center model at origin
-                const box = new THREE.Box3().setFromObject(realModel);
-                const size = new THREE.Vector3();
-                box.getSize(size);
-                const center = new THREE.Vector3();
-                box.getCenter(center);
-                realModel.position.sub(center);
+        hero3D.phoneGroup.rotation.x = hero3D.currentRotation.x;
+        hero3D.phoneGroup.rotation.y = hero3D.currentRotation.y;
+        hero3D.scene.add(hero3D.phoneGroup);
 
-                // Scale to fit hero cleanly (~4.35 units height)
-                const targetHeight = 4.35;
-                const scale = targetHeight / (size.y || 15.9);
-                realModel.scale.set(scale, scale, scale);
-
-                // In iphone.glb, front screen mesh is oriented at -Z.
-                // Rotate 180 deg (Math.PI) so front screen faces +Z directly towards the camera!
-                realModel.rotation.y = Math.PI;
-
-                const wrapper = new THREE.Group();
-                wrapper.add(realModel);
-
-                // Collect materials for color switching & wallpaper mapping
-                const realTintMaterials = [];
-                let realScreenMat = null;
-
-                realModel.traverse((child) => {
-                    if (child.isMesh && child.material) {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        const matName = child.material.name || '';
-                        
-                        // Front Screen material (pIJKfZsazmcpEiU in iPhone 15 Pro model)
-                        if (matName.includes('pIJKfZsazmcpEiU')) {
-                            realScreenMat = child.material;
-                            child.material.color.setHex(0xffffff); // Pure white so official Apple wallpapers show 100% vibrant true color
-                            child.material.roughness = 0.12;
-                            child.material.metalness = 0.05;
-                            if (hero3D.preloadedWallpapers && hero3D.preloadedWallpapers[hero3D.currentColor]) {
-                                child.material.map = hero3D.preloadedWallpapers[hero3D.currentColor];
-                            }
-                            child.material.needsUpdate = true;
-                        }
-
-                        // Titanium frame, backplate, and camera bezel materials
-                        if (matName.includes('dxCVrUCvYhjVxqy') || matName.includes('yhcAXNGcJWCqtIS') || matName.includes('mcPrzcBUcdqUybC') || matName.includes('oZRkkORNzkufnGD')) {
-                            realTintMaterials.push(child.material);
-                        }
-                    }
-                });
-
-                // Seamlessly swap placeholder with the real iPhone 15 Pro model
-                if (hero3D.phoneGroup) {
-                    hero3D.scene.remove(hero3D.phoneGroup);
-                }
-
-                hero3D.phoneGroup = wrapper;
-                hero3D.tintMaterials = realTintMaterials;
-                if (realScreenMat) hero3D.screenMaterial = realScreenMat;
-
-                hero3D.phoneGroup.rotation.x = hero3D.currentRotation.x;
-                hero3D.phoneGroup.rotation.y = hero3D.currentRotation.y;
-                hero3D.scene.add(hero3D.phoneGroup);
-
-                // Apply active titanium color finish
-                applyPhoneColor(hero3D.currentColor);
-            },
-            undefined,
-            (err) => {
-                console.warn("Using procedural fallback:", err);
-            }
-        );
-    }
+        // Apply active titanium color finish
+        applyPhoneColor(hero3D.currentColor);
+    }).catch((err) => {
+        console.warn("Using procedural fallback:", err);
+    });
 
     // Pointer Events for 3D Drag & Tilt
     const dom = hero3D.renderer.domElement;
@@ -1018,27 +1110,31 @@ function initHero3D() {
 
 function applyPhoneColor(colorHex) {
     hero3D.currentColor = colorHex;
-    const target = new THREE.Color(colorHex);
+    if (hero3D.instance) {
+        hero3D.instance.setColor(colorHex);
+    } else {
+        const target = new THREE.Color(colorHex);
 
-    // Update metal titanium finishes
-    if (hero3D.tintMaterials && hero3D.tintMaterials.length > 0) {
-        hero3D.tintMaterials.forEach(mat => {
-            if (mat && mat.color) {
-                gsap.to(mat.color, {
-                    r: target.r,
-                    g: target.g,
-                    b: target.b,
-                    duration: 0.5
-                });
-            }
-        });
-    }
+        // Update metal titanium finishes
+        if (hero3D.tintMaterials && hero3D.tintMaterials.length > 0) {
+            hero3D.tintMaterials.forEach(mat => {
+                if (mat && mat.color) {
+                    gsap.to(mat.color, {
+                        r: target.r,
+                        g: target.g,
+                        b: target.b,
+                        duration: 0.5
+                    });
+                }
+            });
+        }
 
-    // Update front screen wallpaper if texture is preloaded
-    if (hero3D.screenMaterial && hero3D.preloadedWallpapers && hero3D.preloadedWallpapers[colorHex]) {
-        if (hero3D.screenMaterial.color) hero3D.screenMaterial.color.setHex(0xffffff);
-        hero3D.screenMaterial.map = hero3D.preloadedWallpapers[colorHex];
-        hero3D.screenMaterial.needsUpdate = true;
+        // Update front screen wallpaper if texture is preloaded
+        if (hero3D.screenMaterial && hero3D.preloadedWallpapers && hero3D.preloadedWallpapers[colorHex]) {
+            if (hero3D.screenMaterial.color) hero3D.screenMaterial.color.setHex(0xffffff);
+            hero3D.screenMaterial.map = hero3D.preloadedWallpapers[colorHex];
+            hero3D.screenMaterial.needsUpdate = true;
+        }
     }
 }
 
@@ -1057,114 +1153,7 @@ function onHeroResize() {
     }
 }
 
-// ==========================================
-// 7. STANDALONE 3D STUDIO MODAL
-// ==========================================
-function initModal3DStudio() {
-    const container = document.getElementById('modal-3d-canvas-container');
-    if (!container || modal3D.renderer) return;
 
-    const width = container.clientWidth || 550;
-    const height = container.clientHeight || 440;
-
-    modal3D.scene = new THREE.Scene();
-    modal3D.camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
-    modal3D.camera.position.set(0, 0, 7.8);
-
-    modal3D.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    modal3D.renderer.setSize(width, height);
-    modal3D.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    container.appendChild(modal3D.renderer.domElement);
-
-    modal3D.scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-    const dLight = new THREE.DirectionalLight(0xffffff, 1.4);
-    dLight.position.set(4, 5, 5);
-    modal3D.scene.add(dLight);
-
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    fillLight.position.set(-4, -2, -3);
-    modal3D.scene.add(fillLight);
-
-    // Build 3D Studio Phone Model (Instant & Reliable)
-    const phone = buildProceduralPhone(modal3D.currentColor);
-    modal3D.phoneGroup = phone.model;
-    modal3D.tintMaterials = phone.tintMaterials;
-    modal3D.scene.add(modal3D.phoneGroup);
-
-    // Drag Interaction
-    const dom = modal3D.renderer.domElement;
-    dom.addEventListener('pointerdown', (e) => {
-        modal3D.isDragging = true;
-        modal3D.prevPointer = { x: e.clientX, y: e.clientY };
-    });
-
-    window.addEventListener('pointerup', () => {
-        modal3D.isDragging = false;
-    });
-
-    dom.addEventListener('pointermove', (e) => {
-        if (!modal3D.isDragging || !modal3D.phoneGroup) return;
-        const deltaX = e.clientX - modal3D.prevPointer.x;
-        const deltaY = e.clientY - modal3D.prevPointer.y;
-        modal3D.phoneGroup.rotation.y += deltaX * 0.01;
-        modal3D.phoneGroup.rotation.x += deltaY * 0.01;
-        modal3D.prevPointer = { x: e.clientX, y: e.clientY };
-    });
-
-    // Studio Color Swatches
-    document.querySelectorAll('#studio-color-options .color-swatch').forEach(swatch => {
-        swatch.addEventListener('click', () => {
-            document.querySelectorAll('#studio-color-options .color-swatch').forEach(s => s.classList.remove('active'));
-            swatch.classList.add('active');
-
-            const hex = swatch.dataset.color;
-            const name = swatch.dataset.name;
-            document.getElementById('studio-color-name').innerText = name;
-
-            const targetColor = new THREE.Color(hex);
-            if (modal3D.tintMaterials) {
-                modal3D.tintMaterials.forEach(m => {
-                    if (m && m.color) m.color.copy(targetColor);
-                });
-            }
-            audioFX.playClick();
-        });
-    });
-
-    document.getElementById('studio-spin-btn')?.addEventListener('click', () => {
-        modal3D.autoSpin = !modal3D.autoSpin;
-        audioFX.playClick();
-    });
-
-    document.getElementById('studio-reset-btn')?.addEventListener('click', () => {
-        if (modal3D.phoneGroup) modal3D.phoneGroup.rotation.set(0.1, -0.35, 0);
-        audioFX.playClick();
-    });
-
-    function animateModal3D() {
-        requestAnimationFrame(animateModal3D);
-        if (modal3D.phoneGroup && modal3D.autoSpin && !modal3D.isDragging) {
-            modal3D.phoneGroup.rotation.y += 0.006;
-        }
-        modal3D.renderer.render(modal3D.scene, modal3D.camera);
-    }
-    animateModal3D();
-}
-
-function openStudio3DModal() {
-    const modal = document.getElementById('studio-3d-modal');
-    modal.classList.add('active');
-    setTimeout(() => {
-        initModal3DStudio();
-        if (modal3D.renderer && modal3D.camera) {
-            const container = document.getElementById('modal-3d-canvas-container');
-            modal3D.camera.aspect = container.clientWidth / container.clientHeight;
-            modal3D.camera.updateProjectionMatrix();
-            modal3D.renderer.setSize(container.clientWidth, container.clientHeight);
-        }
-    }, 150);
-    audioFX.playWhoosh();
-}
 
 // ==========================================
 // 8. 3D CARD PERSPECTIVE TILT
@@ -1447,7 +1436,7 @@ function renderProducts() {
                     <div class="product-footer-row">
                         <div class="product-price">${formatRentalPrice(p.price)}</div>
                         <div class="card-actions-row">
-                            <button class="btn-card-3d" title="Lihat 3D Studio" onclick="event.stopPropagation(); openProductDetail(${p.id}, true)">
+                            <button class="btn-card-3d" title="Buka Studio 3D ${p.name}" onclick="event.stopPropagation(); openStudio3DModal(${p.id})">
                                 <i class="fa-solid fa-cube"></i>
                             </button>
                             <button class="btn-add-cart" onclick="event.stopPropagation(); addToCartWithAnimation(${p.id}, this)">
@@ -1773,8 +1762,16 @@ function openProductDetail(productId, show3D = false) {
         <div class="modal-img-container" id="modal-view-overview">
             <img src="${product.img}" alt="${product.name}" class="modal-img" onerror="this.onerror=null; this.src='iphone15_pro_natural.jpg';">
         </div>
-        <div class="modal-3d-view" id="modal-view-3d" style="display:none;">
+        <div class="modal-3d-view" id="modal-view-3d" style="display:none; position:relative;">
             <div id="modal-inline-3d-canvas" style="width:100%; height:100%;"></div>
+            <div class="inline-studio-controls">
+                <div class="inline-studio-badge">
+                    <i class="fa-solid fa-cube"></i> Model 3D iPhone 15 Asli (360°)
+                </div>
+                <button class="btn-open-full-studio" onclick="closeAllModals(); openStudio3DModal(${product.id});" title="Buka Virtual Studio Penuh">
+                    <i class="fa-solid fa-expand"></i> Buka Full 3D Studio
+                </button>
+            </div>
         </div>
 
         <div class="modal-info">
@@ -1830,6 +1827,10 @@ function openProductDetail(productId, show3D = false) {
         tab3D.classList.remove('active');
         document.getElementById('modal-view-overview').style.display = 'flex';
         document.getElementById('modal-view-3d').style.display = 'none';
+        if (inline3DState.animId) {
+            cancelAnimationFrame(inline3DState.animId);
+            inline3DState.animId = null;
+        }
         audioFX.playClick();
     };
 
@@ -1842,7 +1843,7 @@ function openProductDetail(productId, show3D = false) {
 
         setTimeout(() => {
             initInlineModal3D(product);
-        }, 100);
+        }, 80);
     };
 
     if (show3D) {
@@ -1852,67 +1853,193 @@ function openProductDetail(productId, show3D = false) {
     }
 }
 
+let inline3DState = {
+    renderer: null,
+    scene: null,
+    camera: null,
+    instance: null,
+    phoneGroup: null,
+    isDragging: false,
+    prevPointer: { x: 0, y: 0 },
+    currentRotation: { x: 0.3, y: -0.45 },
+    targetRotation: { x: 0.3, y: -0.45 },
+    animId: null
+};
+
 function initInlineModal3D(product) {
     const canvasWrap = document.getElementById('modal-inline-3d-canvas');
     if (!canvasWrap) return;
-    canvasWrap.innerHTML = ''; // Fresh canvas
 
-    const width = canvasWrap.clientWidth || 400;
-    const height = canvasWrap.clientHeight || 420;
+    if (inline3DState.animId) {
+        cancelAnimationFrame(inline3DState.animId);
+        inline3DState.animId = null;
+    }
+    canvasWrap.innerHTML = '';
+
+    const width = canvasWrap.clientWidth || (window.innerWidth < 768 ? Math.min(window.innerWidth - 32, 420) : 460);
+    const height = canvasWrap.clientHeight || (window.innerWidth < 768 ? 320 : 460);
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
-    camera.position.set(0, 0, 7.8);
+    camera.position.set(0, 0, (window.innerWidth < 768 ? 8.4 : 7.6));
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
     canvasWrap.appendChild(renderer.domElement);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-    const dLight = new THREE.DirectionalLight(0xffffff, 1.4);
-    dLight.position.set(4, 5, 5);
-    scene.add(dLight);
+    // Natural Studio Lighting matching Hero showcase
+    scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+    const kLight = new THREE.DirectionalLight(0xffffff, 1.4);
+    kLight.position.set(4, 5, 5);
+    scene.add(kLight);
 
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.7);
-    fillLight.position.set(-4, -1, 4);
-    scene.add(fillLight);
+    const fLight = new THREE.DirectionalLight(0xffffff, 0.7);
+    fLight.position.set(-4, -1, 4);
+    scene.add(fLight);
 
-    let group = null;
-    const colorHex = (product.colors && product.colors[0]) || "#8a857b";
+    const rLight = new THREE.DirectionalLight(0xffffff, 1.1);
+    rLight.position.set(0, 4, -4);
+    scene.add(rLight);
 
-    // Instant procedural 3D model with accurate color
-    const phone = buildProceduralPhone(colorHex);
-    group = phone.model;
-    scene.add(group);
+    const glintLight = new THREE.PointLight(0xffffff, 1.6, 10);
+    glintLight.position.set(0, 0, 4);
+    scene.add(glintLight);
 
-    let isDragging = false;
-    let prev = { x: 0, y: 0 };
-    renderer.domElement.style.touchAction = 'none';
+    inline3DState.scene = scene;
+    inline3DState.camera = camera;
+    inline3DState.renderer = renderer;
+    inline3DState.currentRotation = { x: 0.3, y: -0.45 };
+    inline3DState.targetRotation = { x: 0.3, y: -0.45 };
+    inline3DState.isDragging = false;
 
-    renderer.domElement.addEventListener('pointerdown', (e) => {
-        isDragging = true;
-        prev = { x: e.clientX, y: e.clientY };
+    const primaryColor = (product.colors && product.colors[0]) || "#8a857b";
+
+    // Immediate placeholder so canvas is never blank
+    const placeholder = buildProceduralPhone(primaryColor);
+    inline3DState.phoneGroup = placeholder.group;
+    inline3DState.phoneGroup.rotation.x = inline3DState.currentRotation.x;
+    inline3DState.phoneGroup.rotation.y = inline3DState.currentRotation.y;
+    scene.add(inline3DState.phoneGroup);
+
+    // Mount authentic iPhone 15 GLTF model
+    loadIphone15GLTF().then(() => {
+        const instance = createIphone15GLTFInstance(primaryColor);
+        if (!instance) return;
+
+        if (inline3DState.phoneGroup) {
+            scene.remove(inline3DState.phoneGroup);
+        }
+        inline3DState.instance = instance;
+        inline3DState.phoneGroup = instance.wrapper;
+        inline3DState.phoneGroup.rotation.x = inline3DState.currentRotation.x;
+        inline3DState.phoneGroup.rotation.y = inline3DState.currentRotation.y;
+        scene.add(inline3DState.phoneGroup);
+    }).catch(err => {
+        console.warn("Inline 3D GLTF fallback:", err);
     });
-    window.addEventListener('pointerup', () => isDragging = false);
-    renderer.domElement.addEventListener('pointermove', (e) => {
-        if (!isDragging || !group) return;
-        group.rotation.y += (e.clientX - prev.x) * 0.01;
-        group.rotation.x += (e.clientY - prev.y) * 0.01;
-        prev = { x: e.clientX, y: e.clientY };
+
+    // Touch & Pointer Dragging for 360° rotation
+    const dom = renderer.domElement;
+    dom.style.touchAction = 'none';
+    dom.style.cursor = 'grab';
+
+    dom.addEventListener('pointerdown', (e) => {
+        inline3DState.isDragging = true;
+        inline3DState.prevPointer = { x: e.clientX, y: e.clientY };
+        dom.style.cursor = 'grabbing';
     });
+
+    window.addEventListener('pointerup', () => {
+        inline3DState.isDragging = false;
+        dom.style.cursor = 'grab';
+    });
+
+    dom.addEventListener('pointermove', (e) => {
+        if (!inline3DState.isDragging || !inline3DState.phoneGroup) return;
+        const deltaX = e.clientX - inline3DState.prevPointer.x;
+        const deltaY = e.clientY - inline3DState.prevPointer.y;
+        inline3DState.targetRotation.y += deltaX * 0.009;
+        inline3DState.targetRotation.x += deltaY * 0.009;
+        inline3DState.prevPointer = { x: e.clientX, y: e.clientY };
+    });
+
+    const clock = new THREE.Clock();
 
     function loop() {
         if (canvasWrap.offsetParent !== null) {
-            requestAnimationFrame(loop);
-            if (!isDragging && group) group.rotation.y += 0.005;
+            inline3DState.animId = requestAnimationFrame(loop);
+            const elapsed = clock.getElapsedTime();
+
+            if (inline3DState.phoneGroup) {
+                // Floating breathe physics identical to Hero showcase
+                inline3DState.phoneGroup.position.y = Math.sin(elapsed * 1.2) * 0.05;
+
+                // Auto-spin when idle
+                if (!inline3DState.isDragging) {
+                    inline3DState.targetRotation.y += 0.004;
+                }
+
+                // Damping lerp
+                inline3DState.currentRotation.x += (inline3DState.targetRotation.x - inline3DState.currentRotation.x) * 0.06;
+                inline3DState.currentRotation.y += (inline3DState.targetRotation.y - inline3DState.currentRotation.y) * 0.06;
+
+                inline3DState.phoneGroup.rotation.x = inline3DState.currentRotation.x;
+                inline3DState.phoneGroup.rotation.y = inline3DState.currentRotation.y;
+            }
+
             renderer.render(scene, camera);
         }
     }
     loop();
 }
 
-function openStudio3DModal() {
+function openStudio3DModal(productOrId) {
+    let product = null;
+    if (typeof productOrId === 'number' || typeof productOrId === 'string') {
+        product = products.find(p => p.id == productOrId);
+    } else if (productOrId && productOrId.id) {
+        product = productOrId;
+    }
+    if (!product) product = products[0];
+
+    modal3D.currentProduct = product;
+    modal3D.currentColor = (product.colors && product.colors[0]) || "#8a857b";
+
+    // Update modal header
+    const titleEl = document.querySelector('#studio-3d-modal .studio-header h3');
+    if (titleEl) {
+        titleEl.innerHTML = `<i class="fa-solid fa-cube"></i> Studio 3D • ${product.name}`;
+    }
+    const descEl = document.querySelector('#studio-3d-modal .studio-header p');
+    if (descEl) {
+        descEl.textContent = `Eksplorasi unit ${product.name} 360°, bodi Grade 5 Titanium asli, modul kamera presisi, dan kondisi fisik sewa.`;
+    }
+
+    // Update CTA button
+    const ctaBtn = document.getElementById('btn-studio-buy-now');
+    if (ctaBtn) {
+        ctaBtn.innerHTML = `<i class="fa-solid fa-calendar-check"></i> Sewa ${product.name} (${formatRentalPrice(product.price)})`;
+        ctaBtn.onclick = () => {
+            addToCartWithAnimation(product.id, ctaBtn);
+            closeAllModals();
+        };
+    }
+
+    // Update active color swatches
+    const activeColor = modal3D.currentColor.toLowerCase();
+    document.querySelectorAll('#studio-color-options .color-swatch').forEach(swatch => {
+        const isMatch = swatch.dataset.color.toLowerCase() === activeColor;
+        swatch.classList.toggle('active', isMatch);
+    });
+    const colorNameEl = document.getElementById('studio-color-name');
+    if (colorNameEl) {
+        const activeSwatch = document.querySelector('#studio-color-options .color-swatch.active');
+        colorNameEl.innerText = activeSwatch ? activeSwatch.dataset.name : 'Titanium Finish';
+    }
+
     const modal = document.getElementById('studio-3d-modal');
     if (!modal) return;
     modal.classList.add('active');
@@ -1920,6 +2047,7 @@ function openStudio3DModal() {
 
     setTimeout(() => {
         initStudio3DModal();
+        applyModalPhoneColor(modal3D.currentColor);
         startModalAnimation();
     }, 60);
 }
@@ -1975,13 +2103,16 @@ function initStudio3DModal() {
         modal3D.camera.aspect = width / height;
         modal3D.camera.updateProjectionMatrix();
         modal3D.renderer.setSize(width, height);
+        if (modal3D.instance) {
+            modal3D.instance.setColor(modal3D.currentColor);
+        }
         startModalAnimation();
         return;
     }
 
     modal3D.scene = new THREE.Scene();
     modal3D.camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
-    modal3D.camera.position.set(0, 0, 7.8);
+    modal3D.camera.position.set(0, 0, (window.innerWidth < 768 ? 8.4 : 7.8));
 
     modal3D.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     modal3D.renderer.setSize(width, height);
@@ -2005,7 +2136,7 @@ function initStudio3DModal() {
     rLight.position.set(0, 4, -4);
     modal3D.scene.add(rLight);
 
-    // Build 3D Studio Phone Model (Instant & Reliable)
+    // Placeholder phone for instant visual
     const phone = buildProceduralPhone(modal3D.currentColor);
     modal3D.phoneGroup = phone.model;
     modal3D.tintMaterials = phone.tintMaterials;
@@ -2013,67 +2144,25 @@ function initStudio3DModal() {
     modal3D.phoneGroup.rotation.x = modal3D.currentRotation.x;
     modal3D.phoneGroup.rotation.y = modal3D.currentRotation.y;
     modal3D.scene.add(modal3D.phoneGroup);
-    applyModalPhoneColor(modal3D.currentColor);
 
-    // Load Real iPhone 15 Pro Model for Studio
-    if (typeof THREE.GLTFLoader === 'function') {
-        const loader = new THREE.GLTFLoader();
-        if (typeof THREE.DRACOLoader === 'function') {
-            const dracoLoader = new THREE.DRACOLoader();
-            dracoLoader.setDecoderPath('draco/');
-            loader.setDRACOLoader(dracoLoader);
+    // Mount authentic iPhone 15 GLTF model
+    loadIphone15GLTF().then(() => {
+        const instance = createIphone15GLTFInstance(modal3D.currentColor);
+        if (!instance) return;
+
+        if (modal3D.phoneGroup) {
+            modal3D.scene.remove(modal3D.phoneGroup);
         }
-        loader.load('iphone.glb', (gltf) => {
-            const realModel = gltf.scene;
-            const box = new THREE.Box3().setFromObject(realModel);
-            const size = new THREE.Vector3();
-            box.getSize(size);
-            const center = new THREE.Vector3();
-            box.getCenter(center);
-            realModel.position.sub(center);
-
-            const scale = 4.2 / (size.y || 15.9);
-            realModel.scale.set(scale, scale, scale);
-            realModel.rotation.y = Math.PI;
-
-            const wrapper = new THREE.Group();
-            wrapper.add(realModel);
-
-            modal3D.tintMaterials = [];
-            realModel.traverse((child) => {
-                if (child.isMesh && child.material) {
-                    const matName = child.material.name || '';
-                    if (matName.includes('pIJKfZsazmcpEiU')) {
-                        modal3D.screenMaterial = child.material;
-                        child.material.color.setHex(0xffffff);
-                        const wallMap = {
-                            "#8a857b": "iphone_15_pro_yellow.png",
-                            "#2b3846": "iphone_15_pro_blue.png",
-                            "#e2e4e7": "iphone_15_pro_white.png",
-                            "#1f2124": "iphone_15_pro_black.png"
-                        };
-                        const texPath = wallMap[modal3D.currentColor] || 'iphone_15_pro_yellow.png';
-                        new THREE.TextureLoader().load(texPath, (tex) => {
-                            tex.flipY = false;
-                            if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
-                            child.material.map = tex;
-                            child.material.needsUpdate = true;
-                        });
-                    }
-                    if (matName.includes('dxCVrUCvYhjVxqy') || matName.includes('yhcAXNGcJWCqtIS') || matName.includes('mcPrzcBUcdqUybC') || matName.includes('oZRkkORNzkufnGD')) {
-                        modal3D.tintMaterials.push(child.material);
-                    }
-                }
-            });
-
-            if (modal3D.phoneGroup) modal3D.scene.remove(modal3D.phoneGroup);
-            modal3D.phoneGroup = wrapper;
-            modal3D.phoneGroup.rotation.x = modal3D.currentRotation.x;
-            modal3D.phoneGroup.rotation.y = modal3D.currentRotation.y;
-            modal3D.scene.add(modal3D.phoneGroup);
-            applyModalPhoneColor(modal3D.currentColor);
-        });
-    }
+        modal3D.instance = instance;
+        modal3D.phoneGroup = instance.wrapper;
+        modal3D.tintMaterials = instance.tintMaterials;
+        modal3D.screenMaterial = instance.screenMaterial;
+        modal3D.phoneGroup.rotation.x = modal3D.currentRotation.x;
+        modal3D.phoneGroup.rotation.y = modal3D.currentRotation.y;
+        modal3D.scene.add(modal3D.phoneGroup);
+    }).catch(err => {
+        console.warn("Studio 3D GLTF fallback:", err);
+    });
 
     // Touch & Pointer Dragging for Modal 3D
     const dom = modal3D.renderer.domElement;
@@ -2160,8 +2249,14 @@ function initStudio3DModal() {
         };
     }
 
-    function applyModalPhoneColor(colorHex) {
-        modal3D.currentColor = colorHex;
+    startModalAnimation();
+}
+
+function applyModalPhoneColor(colorHex) {
+    modal3D.currentColor = colorHex;
+    if (modal3D.instance) {
+        modal3D.instance.setColor(colorHex);
+    } else {
         const target = new THREE.Color(colorHex);
 
         if (modal3D.tintMaterials && modal3D.tintMaterials.length > 0) {
@@ -2177,15 +2272,9 @@ function initStudio3DModal() {
             });
         }
 
-        const wallMap = {
-            "#8a857b": "iphone_15_pro_yellow.png",
-            "#2b3846": "iphone_15_pro_blue.png",
-            "#e2e4e7": "iphone_15_pro_white.png",
-            "#1f2124": "iphone_15_pro_black.png"
-        };
-
-        if (modal3D.screenMaterial && wallMap[colorHex]) {
-            new THREE.TextureLoader().load(wallMap[colorHex], (tex) => {
+        const wallPath = getWallpaperForColor(colorHex);
+        if (modal3D.screenMaterial && wallPath) {
+            new THREE.TextureLoader().load(wallPath, (tex) => {
                 tex.flipY = false;
                 if (THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
                 modal3D.screenMaterial.map = tex;
@@ -2193,8 +2282,6 @@ function initStudio3DModal() {
             });
         }
     }
-
-    startModalAnimation();
 }
 
 function closeAllModals() {
@@ -2431,40 +2518,9 @@ function triggerCelebrationConfetti() {
 }
 
 // ==========================================
-// 17. SOUND & THEME TOGGLES
+// 17. THEME SYSTEM
 // ==========================================
-function initSoundAndTheme() {
-    const soundToggle = document.getElementById('sound-toggle');
-    const mobileSoundToggle = document.getElementById('mobile-sound-toggle');
-    const soundStatusText = document.getElementById('sound-status-text');
-
-    function updateSoundUI() {
-        if (soundToggle) {
-            soundToggle.classList.toggle('sound-muted', !soundEnabled);
-            soundToggle.innerHTML = soundEnabled ?
-                '<i class="fa-solid fa-volume-high"></i><span class="sound-dot"></span>' :
-                '<i class="fa-solid fa-volume-xmark"></i>';
-        }
-        if (soundStatusText) {
-            soundStatusText.innerText = soundEnabled ? 'ON' : 'OFF';
-        }
-        localStorage.setItem('ponestore_sound', soundEnabled ? 'true' : 'false');
-    }
-
-    soundToggle?.addEventListener('click', () => {
-        soundEnabled = !soundEnabled;
-        updateSoundUI();
-        if (soundEnabled) audioFX.playClick();
-    });
-
-    mobileSoundToggle?.addEventListener('click', () => {
-        soundEnabled = !soundEnabled;
-        updateSoundUI();
-        if (soundEnabled) audioFX.playClick();
-    });
-
-    updateSoundUI();
-
+function initTheme() {
     const themeToggle = document.getElementById('theme-toggle');
     const currentTheme = localStorage.getItem('ponestore_theme') || 'dark';
     document.documentElement.setAttribute('data-theme', currentTheme);
@@ -2521,142 +2577,12 @@ function initMobileNavigation() {
 }
 
 // ==========================================
-// 19. PREVIEWED.APP STUDIO SHOWCASE LOGIC
-// ==========================================
-const studioMockups = {
-    isometric: {
-        img: 'previewed_apple_iphone.png',
-        title: 'Isometric 3D Studio Mockup',
-        desc: 'Perspektif isometrik khas Previewed.app dengan ground contact shadow dan floating titanium dock untuk presentasi visual smartphone kelas dunia.',
-        angle: 'isometric'
-    },
-    render3d: {
-        img: 'previewed_3d_mockup.png',
-        title: 'Generator 3D Workspace',
-        desc: 'Tampilan workspace render 3D dari Previewed.app yang memperlihatkan model smartphone secara utuh dengan simulasi pencahayaan studio netral.',
-        angle: 'dynamic'
-    },
-    collection: {
-        img: 'iphone15_pro_white.jpg',
-        title: 'White Titanium Studio Render',
-        desc: 'Koleksi studio render iPhone 15 Pro dalam balutan White Titanium dengan pencahayaan studio dan detail tekstur halus.',
-        angle: 'front'
-    },
-    precision2d: {
-        img: 'iphone15_pro_black.jpg',
-        title: 'Black Titanium Studio Render',
-        desc: 'Studio mockup iPhone 15 Pro Black Titanium dengan profil bezel tipis dan kontur bodi titanium elegan.',
-        angle: 'back'
-    }
-};
-
-let activeStudioMockup = 'isometric';
-
-function initStudioShowcase() {
-    const tabs = document.querySelectorAll('#studio-mockup-tabs .studio-tab-btn');
-    const mainImg = document.getElementById('studio-main-img');
-    const title = document.getElementById('studio-stage-title');
-    const desc = document.getElementById('studio-stage-desc');
-    const syncBtn = document.getElementById('btn-sync-to-3d');
-    const fullBtn = document.getElementById('btn-fullscreen-mockup');
-    const modal = document.getElementById('mockup-viewer-modal');
-    const modalImg = document.getElementById('mockup-modal-img');
-    const modalTitle = document.getElementById('mockup-modal-title');
-    const downloadBtn = document.getElementById('btn-download-mockup');
-    const closeModal = document.getElementById('close-mockup-modal');
-    const modalTo3d = document.getElementById('btn-modal-to-3d');
-
-    if (!tabs.length || !mainImg) return;
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-
-            const key = tab.dataset.mockup;
-            if (studioMockups[key]) {
-                activeStudioMockup = key;
-                const data = studioMockups[key];
-
-                // Smooth fade transition
-                gsap.to(mainImg, {
-                    opacity: 0,
-                    scale: 0.96,
-                    duration: 0.2,
-                    onComplete: () => {
-                        mainImg.src = data.img;
-                        if (title) title.innerText = data.title;
-                        if (desc) desc.innerText = data.desc;
-                        gsap.to(mainImg, {
-                            opacity: 1,
-                            scale: 1,
-                            duration: 0.35,
-                            ease: "power2.out"
-                        });
-                    }
-                });
-
-                audioFX.playClick();
-            }
-        });
-    });
-
-    if (syncBtn) {
-        syncBtn.addEventListener('click', () => {
-            audioFX.playChime();
-            const angleKey = studioMockups[activeStudioMockup]?.angle || 'isometric';
-            const heroAngleBtn = document.querySelector(`#hero-angle-presets .preset-btn[data-angle="${angleKey}"]`);
-            if (heroAngleBtn) heroAngleBtn.click();
-
-            const heroSection = document.getElementById('home');
-            if (heroSection) {
-                heroSection.scrollIntoView({ behavior: 'smooth' });
-            }
-            showToast(`Menyinkronkan sudut ${angleKey.toUpperCase()} ke Studio 3D`);
-        });
-    }
-
-    if (fullBtn) {
-        fullBtn.addEventListener('click', () => {
-            const data = studioMockups[activeStudioMockup];
-            if (!data) return;
-            if (modalImg) modalImg.src = data.img;
-            if (modalTitle) modalTitle.innerText = data.title;
-            if (downloadBtn) {
-                downloadBtn.href = data.img;
-                downloadBtn.download = data.img;
-            }
-            if (modal) modal.classList.add('active');
-            audioFX.playClick();
-        });
-    }
-
-    if (closeModal && modal) {
-        closeModal.addEventListener('click', () => {
-            modal.classList.remove('active');
-            audioFX.playClick();
-        });
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.classList.remove('active');
-        });
-    }
-
-    if (modalTo3d && modal) {
-        modalTo3d.addEventListener('click', () => {
-            modal.classList.remove('active');
-            openStudio3DModal();
-        });
-    }
-}
-
-// ==========================================
-// 20. APP INITIALIZATION
+// 19. APP INITIALIZATION
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-    initSoundAndTheme();
+    initTheme();
     initMobileNavigation();
     initHero3D();
-    initStudioShowcase();
     initScrollAnimations();
     renderBrandFilters();
     renderProducts();
